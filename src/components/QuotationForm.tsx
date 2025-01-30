@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { PlusCircle, MinusCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface QuotationFormProps {
   initialData?: Quotation;
@@ -30,6 +37,12 @@ export interface Quotation extends QuotationFormData {
   status: "draft" | "sent" | "accepted" | "rejected";
 }
 
+interface PredefinedItem {
+  id: string;
+  description: string;
+  price: number;
+}
+
 const emptyItem = { description: "", quantity: 1, price: 0 };
 
 export function QuotationForm({ initialData, onSubmit }: QuotationFormProps) {
@@ -41,6 +54,15 @@ export function QuotationForm({ initialData, onSubmit }: QuotationFormProps) {
     items: initialData?.items || [{ ...emptyItem }],
     notes: initialData?.notes || "",
   });
+
+  const [predefinedItems, setPredefinedItems] = useState<PredefinedItem[]>([]);
+
+  useEffect(() => {
+    const savedItems = localStorage.getItem('quotationItems');
+    if (savedItems) {
+      setPredefinedItems(JSON.parse(savedItems));
+    }
+  }, []);
 
   const addItem = () => {
     setFormData({
@@ -63,6 +85,19 @@ export function QuotationForm({ initialData, onSubmit }: QuotationFormProps) {
       [field]: value,
     };
     setFormData({ ...formData, items: newItems });
+  };
+
+  const handleItemSelect = (index: number, itemId: string) => {
+    const selectedItem = predefinedItems.find(item => item.id === itemId);
+    if (selectedItem) {
+      const newItems = [...formData.items];
+      newItems[index] = {
+        description: selectedItem.description,
+        quantity: 1,
+        price: selectedItem.price,
+      };
+      setFormData({ ...formData, items: newItems });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -127,13 +162,22 @@ export function QuotationForm({ initialData, onSubmit }: QuotationFormProps) {
           {formData.items.map((item, index) => (
             <div key={index} className="grid grid-cols-[1fr,100px,120px,40px] gap-4 items-end">
               <div className="space-y-2">
-                <Label htmlFor={`description-${index}`}>Description</Label>
-                <Input
-                  id={`description-${index}`}
-                  value={item.description}
-                  onChange={(e) => updateItem(index, "description", e.target.value)}
-                  required
-                />
+                <Label htmlFor={`item-${index}`}>Item</Label>
+                <Select
+                  value={predefinedItems.find(pi => pi.description === item.description)?.id}
+                  onValueChange={(value) => handleItemSelect(index, value)}
+                >
+                  <SelectTrigger id={`item-${index}`}>
+                    <SelectValue placeholder="Select an item" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {predefinedItems.map((pi) => (
+                      <SelectItem key={pi.id} value={pi.id}>
+                        {pi.description} (${pi.price})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor={`quantity-${index}`}>Quantity</Label>
@@ -156,6 +200,7 @@ export function QuotationForm({ initialData, onSubmit }: QuotationFormProps) {
                   value={item.price}
                   onChange={(e) => updateItem(index, "price", parseFloat(e.target.value))}
                   required
+                  readOnly
                 />
               </div>
               {formData.items.length > 1 && (
