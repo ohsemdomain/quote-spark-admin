@@ -7,8 +7,15 @@ const CreateQuotation = () => {
   const { toast } = useToast();
 
   const handleSubmit = (data: QuotationFormData) => {
-    // Here we would typically send the data to a backend
-    console.log("Creating quotation:", data);
+    // Get existing quotations from localStorage
+    const existingQuotations = JSON.parse(localStorage.getItem('quotations') || '[]');
+    
+    // Add the new quotation to the array
+    const updatedQuotations = [...existingQuotations, data];
+    
+    // Save back to localStorage
+    localStorage.setItem('quotations', JSON.stringify(updatedQuotations));
+    
     toast({
       title: "Success",
       description: "Quotation created successfully.",

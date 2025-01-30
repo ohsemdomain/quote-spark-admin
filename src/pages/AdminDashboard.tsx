@@ -2,15 +2,25 @@ import { Button } from "@/components/ui/button";
 import { QuotationList } from "@/components/QuotationList";
 import { useNavigate } from "react-router-dom";
 import { PlusCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Quotation } from "@/components/QuotationForm";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [quotations, setQuotations] = useState<Quotation[]>([]);
 
+  // Load quotations from localStorage on component mount
+  useEffect(() => {
+    const savedQuotations = localStorage.getItem('quotations');
+    if (savedQuotations) {
+      setQuotations(JSON.parse(savedQuotations));
+    }
+  }, []);
+
   const handleDelete = (id: string) => {
-    setQuotations(quotations.filter((q) => q.id !== id));
+    const updatedQuotations = quotations.filter((q) => q.id !== id);
+    setQuotations(updatedQuotations);
+    localStorage.setItem('quotations', JSON.stringify(updatedQuotations));
   };
 
   return (
