@@ -10,8 +10,16 @@ const CreateQuotation = () => {
     // Get existing quotations from localStorage
     const existingQuotations = JSON.parse(localStorage.getItem('quotations') || '[]');
     
+    // Create a new quotation with all required fields
+    const newQuotation = {
+      ...data,
+      id: crypto.randomUUID(), // Generate a unique ID
+      createdAt: new Date().toISOString(),
+      status: "draft" as const, // Set initial status to draft
+    };
+    
     // Add the new quotation to the array
-    const updatedQuotations = [...existingQuotations, data];
+    const updatedQuotations = [...existingQuotations, newQuotation];
     
     // Save back to localStorage
     localStorage.setItem('quotations', JSON.stringify(updatedQuotations));
