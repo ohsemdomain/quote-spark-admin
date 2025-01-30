@@ -38,6 +38,12 @@ export function QuotationList({ quotations, onDelete }: QuotationListProps) {
     rejected: "bg-red-500",
   };
 
+  const getStatusDisplay = (status: string | undefined) => {
+    // If status is undefined or invalid, default to 'draft'
+    const validStatus = status && Object.keys(statusColors).includes(status) ? status : 'draft';
+    return validStatus.charAt(0).toUpperCase() + validStatus.slice(1);
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -59,8 +65,11 @@ export function QuotationList({ quotations, onDelete }: QuotationListProps) {
                 ${quotation.items.reduce((sum, item) => sum + item.quantity * item.price, 0).toFixed(2)}
               </TableCell>
               <TableCell>
-                <Badge variant="secondary" className={statusColors[quotation.status]}>
-                  {quotation.status.charAt(0).toUpperCase() + quotation.status.slice(1)}
+                <Badge 
+                  variant="secondary" 
+                  className={statusColors[quotation.status || 'draft']}
+                >
+                  {getStatusDisplay(quotation.status)}
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
